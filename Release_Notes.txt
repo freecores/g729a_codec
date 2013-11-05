@@ -1,0 +1,32 @@
+---------------------------------------------------------------
+02-Nov-2013
+---------------------------------------------------------------
+
+This is first release of G.729A codec core version 1.0.
+
+Release directory structure:
+
+G729A_CODEC_V1_0
+|
++--> DOCS (core datasheet)
+|
++--> MISC (*)
+|
++--> SIM
+|    |
+|    +--> MODELSIM (self-test simulation script)
+|
++--> SYN
+|    |
+|    +--> ALTERA (self-test module synthesis script)
+|    |
+|    +--> XILINX (self-test module synthesis script)
+|
++--> VHDL (core source files)
+
+Additional info about design data in the current release can 
+be found in README.txt files included in sub-directories.
+
+(*) This directory currently hold an archived version
+of self-test module Quartus II project.
+
