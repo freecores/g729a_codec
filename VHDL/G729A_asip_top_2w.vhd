@@ -235,12 +235,13 @@ architecture ARC of G729A_ASIP_TOP_2W is
   function get_dadr_ram(DADR : unsigned(ALEN-1 downto 0)) return unsigned is
     variable DADR_RAM : unsigned(12-1 downto 0);
   begin
-    if(DADR(11 downto 10) /= "11") then
-      DADR_RAM(11 downto 10) := DADR(11 downto 10);
-    else
-      DADR_RAM(11 downto 10) := "00";
-    end if;
-    DADR_RAM(9 downto 0) := DADR(9 downto 0);
+    --if(DADR(11 downto 10) /= "11") then
+    --  DADR_RAM(11 downto 10) := DADR(11 downto 10);
+    --else
+    --  DADR_RAM(11 downto 10) := "00";
+    --end if;
+    --DADR_RAM(9 downto 0) := DADR(9 downto 0);
+    DADR_RAM(11 downto 0) := DADR(11 downto 0);
     return(DADR_RAM);
   end function;
 
@@ -285,10 +286,14 @@ architecture ARC of G729A_ASIP_TOP_2W is
   signal DROM0_SEL,DROM1_SEL : std_logic;
   signal DROM0_SEL_q,DROM1_SEL_q : std_logic;
   signal DWE0_RAM : std_logic;
-  signal DADR0_RAM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
-  signal DADR1_RAM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
-  signal DADR0_ROM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
-  signal DADR1_ROM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
+  --signal DADR0_RAM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
+  --signal DADR1_RAM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
+  --signal DADR0_ROM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
+  --signal DADR1_ROM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
+  signal DADR0_ROM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
+  signal DADR1_ROM : unsigned(log2(CMEM_LIMIT)-1 downto 0);
+  signal DADR0_RAM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
+  signal DADR1_RAM : unsigned(log2(DMEM_SIZE-CMEM_LIMIT)-1 downto 0);
   signal DDATI0_RAM : std_logic_vector(SDLEN-1 downto 0);
   signal DDATI1_RAM : std_logic_vector(SDLEN-1 downto 0);
   signal DDATI0_ROM : std_logic_vector(SDLEN-1 downto 0);
@@ -543,7 +548,8 @@ begin
   U_RAMD : G729_ASIP_RAM_1RW1R
     generic map(
       DWIDTH => SDLEN,
-      WCOUNT => DMEM_SIZE-CMEM_LIMIT
+      --WCOUNT => DMEM_SIZE-CMEM_LIMIT
+      WCOUNT => 4096
     )
     port map(
       CLK_i => CLK_i,

@@ -94,6 +94,8 @@ architecture ARC of G729A_ASIP_SPC is
   constant IO_READ : std_logic_vector(2-1 downto 0) := "01";
   constant IO_WRITE : std_logic_vector(2-1 downto 0) := "10";
 
+  constant MAX_IO_COUNT : natural := 2048;
+
   -- sequencer "instruction" type
 
   type PROG_T is record
@@ -102,7 +104,7 @@ architecture ARC of G729A_ASIP_SPC is
     -- I/O mode selector
     IO_MODE : std_logic_vector(2-1 downto 0);
     -- number of words to transfer when in read/write mode
-    IO_COUNT : natural range 0 to 2048-1;
+    IO_COUNT : natural range 0 to MAX_IO_COUNT-1;
     -- I/O address selector
     IO_ASEL : std_logic_vector(3-1 downto 0);
     -- halt when sub-program ends
@@ -130,7 +132,9 @@ architecture ARC of G729A_ASIP_SPC is
   -- be used before encoding/decoding the first packet of a  
   -- conversation, while "b" must be used on following packets.
 
-  constant PROG_SEQ_q : PROG_SEQ_T(0 to 40-1) := (
+  constant MAX_PROG : natural := 40;
+
+  constant PROG_SEQ_q : PROG_SEQ_T(0 to MAX_PROG-1) := (
     --
     -- "init only" sub-program
     --
@@ -215,12 +219,12 @@ architecture ARC of G729A_ASIP_SPC is
   );
 
   signal TS,TS_q : TEST_STATE_T;
-  signal PROG_CNT_q : natural;
-  signal PROG_FIRST : natural;
+  signal PROG_CNT_q : natural range 0 to MAX_PROG-1;
+  signal PROG_FIRST : natural range 0 to MAX_PROG-1;
   signal PROG_NEXT : std_logic;
   signal PROG_LAST : std_logic;
   signal IO_MODE : std_logic_vector(2-1 downto 0);
-  signal IO_COUNT : natural;
+  signal IO_COUNT : natural range 0 to MAX_IO_COUNT-1;
   signal IO_ASEL : std_logic_vector(3-1 downto 0);
   signal A_STRT,A_STRT_q : std_logic;
   signal D_STRT,D_STRT_q : std_logic;

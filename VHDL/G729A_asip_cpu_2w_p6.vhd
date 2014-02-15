@@ -869,7 +869,7 @@ begin
 
   U_PSTL0 : G729A_ASIP_PSTLLOG_2W_P6
     generic map(
-      SIMULATION_ONLY => '1'
+      SIMULATION_ONLY => SIMULATION_ONLY
     )
     port map(
       CLK_i => CLK_i,
@@ -893,7 +893,7 @@ begin
 
   U_PSTL1 : G729A_ASIP_PSTLLOG_2W_P6
     generic map(
-      SIMULATION_ONLY => '1'
+      SIMULATION_ONLY => SIMULATION_ONLY
     )
     port map(
       CLK_i => CLK_i,

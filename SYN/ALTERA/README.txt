@@ -12,10 +12,10 @@ The script has been generated and tested using Quartus II ver.
 If the self-test module is succesfully synthesized, after
 donwloading the resulting SOF file to the NEEK board, the board
 LED's should be in the following state:
-LED0 : on (test completed).
-LED1 : on (test passed, no error).
-LED2 : off (permanently tied to VCC, just a safety check).
-LED3 : on (permanently tied to GND, just a safety check).
+LED1 : on (test completed).
+LED2 : on (test passed, no error).
+LED3 : off (permanently tied to VCC, just a safety check).
+LED4 : on (permanently tied to GND, just a safety check).
 
 This directory includes all the design files required by the
 project:

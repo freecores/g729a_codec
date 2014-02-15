@@ -122,8 +122,6 @@ architecture ARC of G729A_ASIP_MULU_PIPEB is
   signal PROD1,PROD2 : LDWORD_T;
   signal MULA_RES : LDWORD_T;
   signal MULA_RES_q : LDWORD_T;
-  signal MULA_OVF : std_logic;
-  signal MULA_OVF_q : std_logic;
   signal LMUL_PROD_q : LDWORD_T;
   signal LMUL_RES : LDWORD_T;
   signal LMUL_OVF : std_logic;
@@ -168,14 +166,11 @@ begin
   MULA_RES(SDLEN-1 downto 0) <= PROD1(SDLEN-1 downto 0);
   MULA_RES(LDLEN-1 downto SDLEN) <= (others => '0');
 
-  MULA_OVF <= '0';
-
   -- pipe register
   process(CLK_i)
   begin
     if(CLK_i = '1' and CLK_i'event) then
       MULA_RES_q <= MULA_RES;
-      MULA_OVF_q <= MULA_OVF;
     end if;
   end process;
 
@@ -448,13 +443,13 @@ begin
 
   --process(CTRL_q,MAC_RES_q,MAC_OVF_q,MULR_RES,MULR_OVF,LMUL_RES,LMUL_OVF,
   --  M3216_RES,M3216_OVF)
-  process(CTRL_q,MULA_RES_q,MULA_OVF_q,MULR_RES,MULR_OVF,LMUL_RES,LMUL_OVF,
+  process(CTRL_q,MULA_RES_q,MULR_RES,MULR_OVF,LMUL_RES,LMUL_OVF,
     M3216_RES,M3216_OVF)
   begin
     case CTRL_q is
       when MC_MULA =>
         RES_o <= MULA_RES_q;
-        OVF_o <= MULA_OVF_q;
+        OVF_o <= '0';
       --when MC_LMAC|MC_LMSU =>
       --  RES_o <= MAC_RES;
       --  OVF_o <= MAC_OVF;

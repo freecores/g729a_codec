@@ -66,10 +66,11 @@ end G729A_ASIP_REGFILE_16X16_2W;
 architecture ARC of G729A_ASIP_REGFILE_16X16_2W is
 
   constant REGNUM : natural := 16;
-  constant ZERO : std_logic_vector(SDLEN-1 downto 0) := (others => '0');
 
   subtype WORD_T is std_logic_vector(SDLEN-1 downto 0);
   type MEM_T is array (REGNUM/2-1 downto 0) of WORD_T;
+  type RID_VEC_T is array (natural range <>) of RID_T;
+  type WORD_VEC_T is array (natural range <>) of WORD_T;
 
   signal REG_EVEN,REG_ODD : MEM_T;
   signal WE0_EVEN,WE0_ODD : std_logic;
@@ -79,6 +80,8 @@ architecture ARC of G729A_ASIP_REGFILE_16X16_2W is
   signal IRA0,IRA1,IRA2,IRA3 : natural range 0 to REGNUM/2-1;
   signal RA0_LSB,RA1_LSB,RA2_LSB,RA3_LSB : std_logic;
   signal D0_LO,D0_HI : std_logic_vector(SDLEN-1 downto 0);
+  signal WE_EVEN,WE_ODD : std_logic_vector(REGNUM/2-1 downto 0); 
+  signal D_EVEN,D_ODD : WORD_VEC_T(REGNUM/2-1 downto 0); 
   signal D0_EVEN,D0_ODD : std_logic_vector(SDLEN-1 downto 0);
   signal D1_LO,D1_HI : std_logic_vector(SDLEN-1 downto 0);
   signal D1_EVEN,D1_ODD : std_logic_vector(SDLEN-1 downto 0);
@@ -101,38 +104,8 @@ begin
   D0_LO <= D0_i(SDLEN-1 downto 0);
   D0_HI <= D0_i(SDLEN*2-1 downto SDLEN);
 
-  D0_EVEN <= D0_LO;
-  D0_ODD <= D0_HI when (LW0_i = '1') else D0_LO;
-
-  process(WA0_LSB,WE0_i,LW0_i)
-  begin
-    if(LW0_i = '0') then
-      WE0_EVEN <= (WE0_i and not(WA0_LSB));
-      WE0_ODD <= (WE0_i and WA0_LSB);
-    else
-      WE0_EVEN <= WE0_i;
-      WE0_ODD <= WE0_i;
-    end if;
-  end process;
-
-  ---------------------------------------------
-
   D1_LO <= D1_i(SDLEN-1 downto 0);
   D1_HI <= D1_i(SDLEN*2-1 downto SDLEN);
-
-  D1_EVEN <= D1_LO;
-  D1_ODD <= D1_HI when (LW1_i = '1') else D1_LO;
-
-  process(WA1_LSB,WE1_i,LW1_i)
-  begin
-    if(LW1_i = '0') then
-      WE1_EVEN <= (WE1_i and not(WA1_LSB));
-      WE1_ODD <= (WE1_i and WA1_LSB);
-    else
-      WE1_EVEN <= WE1_i;
-      WE1_ODD <= WE1_i;
-    end if;
-  end process;
 
   ---------------------------------------------
 
@@ -142,29 +115,88 @@ begin
   WA0_LSB <= GET_LSB(WA0_i);
   WA1_LSB <= GET_LSB(WA1_i);
 
-  process(CLK_i)
-  begin
-    if(CLK_i = '1' and CLK_i'event) then
-      if(WE0_EVEN = '1') then
-        REG_EVEN(IWA0) <= D0_EVEN;
-      end if;
-      if(WE1_EVEN = '1') then
-        REG_EVEN(IWA1) <= D1_EVEN;
-      end if;
-    end if;
-  end process;
+  ---------------------------------------------
 
-  process(CLK_i)
-  begin
-    if(CLK_i = '1' and CLK_i'event) then
-      if(WE0_ODD = '1') then
-        REG_ODD(IWA0) <= D0_ODD;
+  G0 : for k in 0 to REGNUM/2-1 generate
+
+    WE_EVEN(k) <= '1' when (
+      (WE0_i = '1' and (IWA0 = k) and (WA0_LSB = '0') and (LW0_i = '0')) or
+      (WE1_i = '1' and (IWA1 = k) and (WA1_LSB = '0') and (LW1_i = '0')) or
+      (WE0_i = '1' and (IWA0 = k) and (LW0_i = '1')) or
+      (WE1_i = '1' and (IWA1 = k) and (LW1_i = '1'))
+    ) else '0';
+
+    WE_ODD(k) <= '1' when (
+      (WE0_i = '1' and (IWA0 = k) and (WA0_LSB = '1') and (LW0_i = '0')) or
+      (WE1_i = '1' and (IWA1 = k) and (WA1_LSB = '1') and (LW1_i = '0')) or
+      (WE0_i = '1' and (IWA0 = k) and (LW0_i = '1')) or
+      (WE1_i = '1' and (IWA1 = k) and (LW1_i = '1'))
+    ) else '0';
+
+    process(WE0_i,WE1_i,IWA0,IWA1,WA0_LSB,WA1_LSB,LW0_i,LW1_i,
+      D0_LO,D0_HI,D1_LO,D1_HI)
+      variable S : natural range 0 to 4-1;
+    begin
+
+      -- Write from port #1 must get higher priority because
+      -- instruction #1 is newer than instruction #0.
+
+      if(
+        (WE1_i = '1') and (IWA1 = k) and
+        ((WA1_LSB = '0') or (LW1_i = '1'))
+      ) then
+        -- write from port #1
+        D_EVEN(k) <= D1_LO;
+      else
+        -- write from port #0
+        D_EVEN(k) <= D0_LO;
       end if;
-      if(WE1_ODD = '1') then
-        REG_ODD(IWA1) <= D1_ODD;
+
+      if(
+       (WE1_i = '1') and (IWA1 = k) and
+       (WA1_LSB = '1') and (LW1_i = '0')
+      ) then
+        -- word write from port #1
+        S := 0;
+      elsif(
+       (WE1_i = '1') and (IWA1 = k) and
+       (LW1_i = '1')
+      ) then
+        -- long-word write from port #1
+        S := 1;
+      elsif(
+       (WE0_i = '1') and (IWA0 = k) and
+       (WA0_LSB = '1') and (LW0_i = '0')
+      ) then
+        -- word write from port #0
+        S := 2;
+      else
+        -- long-word write from port #0
+        S := 3;
       end if;
-    end if;
-  end process;
+
+      case S is
+        when 0 => D_ODD(k) <= D1_LO;
+        when 1 => D_ODD(k) <= D1_HI;
+        when 2 => D_ODD(k) <= D0_LO;
+        when 3 => D_ODD(k) <= D0_HI;
+      end case;
+
+    end process;
+
+    process(CLK_i)
+    begin
+      if(CLK_i = '1' and CLK_i'event) then
+        if(WE_EVEN(k) = '1') then
+          REG_EVEN(k) <= D_EVEN(k);
+        end if;
+        if(WE_ODD(k) = '1') then
+          REG_ODD(k) <= D_ODD(k);
+        end if;
+      end if;
+    end process;
+
+  end generate;
 
   ---------------------------------------------
 

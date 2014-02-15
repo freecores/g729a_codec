@@ -51,9 +51,6 @@ end G729A_ASIP_ADDSUB_PIPEB;
 
 architecture ARC of G729A_ASIP_ADDSUB_PIPEB is
 
-  constant ZERO : LDWORD_T := to_signed(0,LDLEN);
-  constant ONE : LDWORD_T := to_signed(1,LDLEN);
-
   component G729A_ASIP_ADDER_F is
     generic(
       LEN1 : integer := 16;
@@ -76,7 +73,8 @@ architecture ARC of G729A_ASIP_ADDSUB_PIPEB is
     return(XS);
   end function;
 
-  signal IOPA,IOPB,CI,SUM : LDWORD_T;
+  signal IOPA,IOPB,SUM : LDWORD_T;
+  signal CI : std_logic;
 
 begin
 
@@ -87,53 +85,53 @@ begin
       when AC_ABS|AC_NEG =>
         -- tmp = -opa_i
         IOPA <= not(EXTS(OPA_i(SDLEN-1 downto 0),LDLEN));
-        IOPB <= ZERO;
-        CI <= ONE;
+        IOPB <= (others => '0');
+        CI <= '1';
       when AC_LABS|AC_LNEG =>
         -- tmp = -opa_i
         IOPA <= not(OPA_i);
-        IOPB <= ZERO;
-        CI <= ONE;
+        IOPB <= (others => '0');
+        CI <= '1';
       --when AC_ADD =>
       --  -- tmp = opa_i + opb_i
       --  IOPA <= EXTS(OPA_i(SDLEN-1 downto 0),LDLEN);
       --  IOPB <= EXTS(OPB_i(SDLEN-1 downto 0),LDLEN);
-      --  CI <= ZERO;
+      --  CI <= '0';
       when AC_LADD =>
         -- tmp = opa_i + opb_i
         IOPA <= OPA_i;
         IOPB <= OPB_i;
-        CI <= ZERO;
+        CI <= '0';
       --when AC_SUB =>
       --  -- tmp = opa_i - opb_i
       --  IOPA <= EXTS(OPA_i(SDLEN-1 downto 0),LDLEN);
       --  IOPB <= not(EXTS(OPB_i(SDLEN-1 downto 0),LDLEN));
-      --  CI <= ONE;
+      --  CI <= '1';
       when AC_LSUB =>
         -- tmp = opa_i - opb_i
         IOPA <= OPA_i;
         IOPB <= not(OPB_i);
-        CI <= ONE;
+        CI <= '1';
       when AC_LEXT =>
         -- tmp = opa_i - (opa_i(31:16)<<16)
         IOPA <= OPA_i;
         IOPB <= not(OPA_i(LDLEN-1 downto SDLEN) & to_signed(0,SDLEN));
-        CI <= ONE;
+        CI <= '1';
       when others => -- RND
         -- tmp = opa_i + 0x00008000 
         IOPA <= OPA_i;
         IOPB <= (SDLEN-1 => '1',others => '0');
-        CI <= ZERO;
+        CI <= '0';
       --when AC_INC =>
       --  -- tmp = opa_i + 1 
       --  IOPA <= EXTS(OPA_i(SDLEN-1 downto 0),LDLEN);
       --  IOPB <= (0 => '1',others => '0');
-      --  CI <= ZERO;
+      --  CI <= '0';
       --when others => -- DEC
       --  -- tmp = opa_i - 1 
       --  IOPA <= EXTS(OPA_i(SDLEN-1 downto 0),LDLEN);
       --  IOPB <= (others => '1');
-      --  CI <= ZERO;
+      --  CI <= '0';
     end case;
   end process;
 
@@ -147,7 +145,7 @@ begin
     port map(
       OPA_i => IOPA,
       OPB_i => IOPB,
-      CI_i => CI(0),
+      CI_i => CI,
       SUM_o => SUM
     );
 

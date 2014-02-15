@@ -490,16 +490,21 @@ begin
   -- This counter counts the data word to be read from
   -- codec memory, or written to codec memory.
 
-  process(CDC_STS)
-  begin
-    case CDC_STS is
-      when STS_COD_DIN => CNT_INIT <= DECODED_LEN-1;
-      when STS_COD_DOUT => CNT_INIT <= ENCODED_LEN-1;
-      when STS_DEC_DIN => CNT_INIT <= ENCODED_LEN-1;
-      when STS_DEC_DOUT => CNT_INIT <= DECODED_LEN-1;
-      when others => CNT_INIT <= 0;
-    end case;
-  end process;
+  --process(CDC_STS)
+  --begin
+  --  case CDC_STS is
+  --    when STS_COD_DIN => CNT_INIT <= DECODED_LEN-1;
+  --    when STS_COD_DOUT => CNT_INIT <= ENCODED_LEN-1;
+  --    when STS_DEC_DIN => CNT_INIT <= ENCODED_LEN-1;
+  --    when STS_DEC_DOUT => CNT_INIT <= DECODED_LEN-1;
+  --    when others => CNT_INIT <= 0;
+  --  end case;
+  --end process;
+
+  CNT_INIT <= DECODED_LEN-1 when (
+    CDC_STS = STS_COD_DIN or
+    CDC_STS = STS_DEC_DOUT
+  ) else ENCODED_LEN-1;
 
   process(CLK_i)
   begin
